@@ -9,15 +9,16 @@ from keras.layers.convolutional import Convolution2D
 from keras.layers.convolutional import MaxPooling2D
 from keras.layers.core import Activation
 from keras.layers.core import Flatten
-from keras.layers.core import Dense
+from keras.layers.core import Dense, Dropout
 from keras.layers import Lambda
 
-CSV_FILE_PATH = "/Users/prateekagrawal/Desktop/my_git/udacity/udacity_sim_data/data/driving_log.csv"
-IMAGE_FILE_PATH = "/Users/prateekagrawal/Desktop/my_git/udacity/udacity_sim_data/data"
+CSV_FILE_PATH = "/sumsung2T/udacity/steering_angle_data/driving_log.csv"
+IMAGE_FILE_PATH = "/sumsung2T/udacity/steering_angle_data"
 BATCH_SIZE = 32
+EPOCH = 5
 CORRECTION = 0.2
 AUGMENTATION = True
-IMAGE_SHAPE = []
+IMAGE_SHAPE = [160,320,3]
 
 logs = []
 with open(CSV_FILE_PATH) as csv_file:
@@ -72,9 +73,9 @@ train_generator = batch_generator(training_logs, BATCH_SIZE)
 test_generator = batch_generator(testing_logs, BATCH_SIZE)
 
 model = Sequential()
-model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160, 320, 3)))
+model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=IMAGE_SHAPE))
 # first set of CONV => RELU => POOL
-model.add(Convolution2D(6, 5, 5, border_mode="same", input_shape=(160, 320, 3)))
+model.add(Convolution2D(6, 5, 5, border_mode="same"))
 model.add(Activation("relu"))
 model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 
@@ -87,9 +88,7 @@ model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 model.add(Flatten())
 model.add(Dense(256))
 model.add(Activation("relu"))
-
-model.add(Dense(128))
-model.add(Activation("relu"))
+model.add(Dropout(0.7))
 
 model.add(Dense(64))
 model.add(Activation("relu"))
@@ -100,7 +99,7 @@ model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
 model.fit_generator(train_generator,
                     steps_per_epoch=len(training_logs)/BATCH_SIZE,
-                    epochs=1,
+                    epochs=EPOCH,
                     validation_data=test_generator,
                     validation_steps=len(testing_logs)/BATCH_SIZE
                     )
